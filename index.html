@@ -155,6 +155,19 @@
     }
     .chip.active { color: var(--fg); border-color: var(--accent); }
 
+    .reset-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 8px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      justify-self: center;
+      transition: color .15s ease, border-color .15s ease;
+    }
+    .reset-btn:hover { color: var(--fg); border-color: var(--accent); }
+
     canvas#spec {
       display: block;
       width: 100%;
@@ -249,6 +262,8 @@
       반려동물(개·고양이·햄스터 등)이 불편해할 수 있고, 청력에 민감한 사람은 두통이 생길 수 있으니 볼륨을 낮게 시작하세요.
       이어폰/헤드폰 착용 중 고음 재생은 권장하지 않습니다.
     </p>
+
+    <button id="reset" class="reset-btn" type="button">↺ 초기 설정으로</button>
   </main>
 
   <footer>
@@ -284,13 +299,17 @@
 
     const LS_KEY = "bugout:v1";
 
-    let state = {
+    const INITIAL_STATE = {
       freq: 18000,
       volume: 0.4,
       wave: "sine",
       sweep: "off",
       timer: "off",
       detune: 0,
+    };
+
+    let state = {
+      ...INITIAL_STATE,
       playing: false,
     };
 
@@ -588,6 +607,19 @@
     playBtn.addEventListener("click", () => {
       state.playing = !state.playing;
       if (state.playing) startTone(); else stopTone();
+      render();
+    });
+
+    $("reset").addEventListener("click", () => {
+      if (!confirm("모든 설정을 초기값으로 되돌릴까요?")) return;
+      if (state.playing) {
+        state.playing = false;
+        stopTone();
+      }
+      Object.assign(state, INITIAL_STATE);
+      state.activePreset = null;
+      lastNonZeroVolume = INITIAL_STATE.volume;
+      try { localStorage.removeItem(LS_KEY); } catch {}
       render();
     });
 
